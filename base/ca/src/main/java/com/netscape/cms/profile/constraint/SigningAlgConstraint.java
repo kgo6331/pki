@@ -56,6 +56,7 @@ public class SigningAlgConstraint extends EnrollConstraint {
                 sb.append(",");
             }
             sb.append(AlgorithmId.ALL_SIGNING_ALGORITHMS[i]);
+            sb.append(",Dilithium2,Dilithium3,Dilithium5");
         }
     }
     public static final String DEF_CONFIG_ALGORITHMS = new String(sb);
@@ -79,7 +80,7 @@ public class SigningAlgConstraint extends EnrollConstraint {
                 StringTokenizer st = new StringTokenizer(value, ",");
                 while (st.hasMoreTokens()) {
                     String v = st.nextToken();
-                    if (DEF_CONFIG_ALGORITHMS.indexOf(v) == -1) {
+                    if (!DEF_CONFIG_ALGORITHMS.contains(v)) {
                         logger.error("SigningAlgConstraint: Unsupported signing algorithm: " + v);
                         throw new EPropertyException("Unsupported signing algorithm: " + v);
                     }

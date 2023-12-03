@@ -306,6 +306,11 @@ public class KeyConstraint extends EnrollConstraint {
                     }
                 }
 
+            } else if (keyType.equals("DILITHIUM")) {
+
+                for (String param : params) {
+                    logger.info("KeyConstraint: Dilithium Security level: " + param);
+                }
             } else {
 
                 for (String param : params) {
