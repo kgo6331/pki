@@ -960,6 +960,10 @@ public class NSSDatabase {
                 usagesMask);
     }
 
+    public KeyPair createDilithiumKeyPair(int level) throws Exception{
+        return CryptoUtil.generateDilithiumKeyPair(level);
+    }
+
     public KeyPair createRSAKeyPair(
             CryptoToken token,
             int keySize,

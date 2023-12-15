@@ -47,7 +47,7 @@ public class SigningAlgDefault extends EnrollDefault {
 
     public static final String VAL_ALGORITHM = "signingAlg";
     public static final String DEF_CONFIG_ALGORITHMS =
-            "-,SHA1withRSA,SHA256withRSA,SHA384withRSA,SHA512withRSA";
+            "-,Dilithium2,Dilithium3,Dilithium5";
 
     public SigningAlgDefault() {
         super();
@@ -59,7 +59,7 @@ public class SigningAlgDefault extends EnrollDefault {
     public IDescriptor getConfigDescriptor(Locale locale, String name) {
         if (name.equals(CONFIG_ALGORITHM)) {
             return new Descriptor(IDescriptor.CHOICE, DEF_CONFIG_ALGORITHMS,
-                    "SHA256withRSA",
+                    "Dilithium5",
                     CMS.getUserMessage(locale, "CMS_PROFILE_SIGNING_ALGORITHM"));
         }
         return null;

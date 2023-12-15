@@ -27,15 +27,7 @@ import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.KeyPair;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.SecureRandom;
+import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.DSAParams;
@@ -64,6 +56,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dogtagpki.dilithium.impl.DilithiumPublicKeyImpl;
 import org.dogtagpki.dilithium.interfaces.DilithiumParameterSpec;
 import org.dogtagpki.dilithium.interfaces.DilithiumPublicKey;
+import org.dogtagpki.dilithium.provider.DilithiumProvider;
 import org.mozilla.jss.CryptoManager;
 import org.mozilla.jss.NicknameConflictException;
 import org.mozilla.jss.NoSuchTokenException;
@@ -431,6 +424,23 @@ public class CryptoUtil {
                 null,
                 usages,
                 usagesMask);
+    }
+
+    public static KeyPair generateDilithiumKeyPair(int level) throws Exception {
+        DilithiumProvider pv = new DilithiumProvider();
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("Dilithium", pv);
+        DilithiumParameterSpec spec = switch (level) {
+            case 2 -> DilithiumParameterSpec.LEVEL2;
+            case 3 -> DilithiumParameterSpec.LEVEL3;
+            case 5 -> DilithiumParameterSpec.LEVEL5;
+            default -> {
+                // Defaults to Spec Level 2 if input wasn't recognized
+                System.out.println("Input not recognized. Default Level 2 will be used...");
+                yield DilithiumParameterSpec.LEVEL2;
+            }
+        };
+        kpg.initialize(spec);
+        return kpg.generateKeyPair();
     }
 
     /**
@@ -1129,6 +1139,8 @@ public class CryptoUtil {
             alg = "SHA256withEC";
         } else if (publicKey instanceof DSAPublicKey) {
             alg = "DSA";
+        } else if (publicKey instanceof DilithiumPublicKey) {
+            alg = "Dilithium";
         } else {
             throw new NoSuchAlgorithmException("Unsupported algorithm: " + publicKey.getAlgorithm());
         }
