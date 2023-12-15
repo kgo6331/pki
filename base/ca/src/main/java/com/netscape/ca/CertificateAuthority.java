@@ -42,6 +42,8 @@ import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.dogtagpki.dilithium.interfaces.DilithiumParameterSpec;
+import org.dogtagpki.dilithium.provider.DilithiumProvider;
 import org.dogtagpki.server.authentication.AuthToken;
 import org.dogtagpki.server.ca.CAConfig;
 import org.dogtagpki.server.ca.CAEngine;
@@ -1757,6 +1759,84 @@ public class CertificateAuthority extends Subsystem implements IAuthority, IOCSP
 
         Map<String, Object> resultMap = processor.processEnrollment(
             certRequest, null, authorityID, null, authToken);
+
+        com.netscape.cmscore.request.Request[] requests = (com.netscape.cmscore.request.Request[]) resultMap.get(CAProcessor.ARG_REQUESTS);
+        com.netscape.cmscore.request.Request request = requests[0];
+
+        Integer result = request.getExtDataInInteger(com.netscape.cmscore.request.Request.RESULT);
+        if (result != null && !result.equals(com.netscape.cmscore.request.Request.RES_SUCCESS)) {
+            throw new EBaseException("Unable to generate signing certificate: " + result);
+        }
+
+        RequestStatus requestStatus = request.getRequestStatus();
+        if (requestStatus != RequestStatus.COMPLETE) {
+            // The request did not complete.  Inference: something
+            // incorrect in the request (e.g. profile constraint
+            // violated).
+            String msg = "Unable to generate signing certificate: " + requestStatus;
+            String errorMsg = request.getExtDataInString(com.netscape.cmscore.request.Request.ERROR);
+            if (errorMsg != null) {
+                msg += ": " + errorMsg;
+            }
+            throw new BadRequestDataException(msg);
+        }
+
+        return request.getExtDataInCert(com.netscape.cmscore.request.Request.REQUEST_ISSUED_CERT);
+    }
+
+    public X509CertImpl generatePQCSigningCert(
+            X500Name subjectX500Name,
+            AuthToken authToken)
+            throws Exception {
+
+        CryptoManager cryptoManager = CryptoManager.getInstance();
+
+        // TODO: read PROP_TOKEN_NAME config
+        CryptoToken token = cryptoManager.getInternalKeyStorageToken();
+
+        logger.info("CertificateAuthority: generating Dilithium key");
+
+        DilithiumProvider pv = new DilithiumProvider();
+        System.out.println("Generating Key Pair");
+
+        // Creates a Dilithium KeyPair generator with the specific specs chosen
+        java.security.KeyPairGenerator kpg = java.security.KeyPairGenerator.getInstance("Dilithium", pv);
+        DilithiumParameterSpec spec = DilithiumParameterSpec.LEVEL5;
+        kpg.initialize(spec);
+
+        KeyPair keypair = kpg.generateKeyPair();
+        PublicKey pub = keypair.getPublic();
+        X509Key x509key = CryptoUtil.createX509Key(pub);
+
+        logger.info("CertificateAuthority: creating PKCS #10 request");
+
+        PKCS10 pkcs10 = new PKCS10(x509key);
+        Signature signature = Signature.getInstance("Dilithium", pv);
+        signature.initSign(keypair.getPrivate());
+        pkcs10.encodeAndSign(new X500Signer(signature, subjectX500Name));
+        String pkcs10String = CertUtil.toPEM(pkcs10);
+
+        logger.info("CertificateAuthority: signing certificate");
+
+        CAEngine engine = CAEngine.getInstance();
+        ProfileSubsystem ps = engine.getProfileSubsystem();
+        String profileId = "caCACert";
+        Profile profile = ps.getProfile(profileId);
+
+        ArgBlock argBlock = new ArgBlock();
+        argBlock.set("cert_request_type", "pkcs10");
+        argBlock.set("cert_request", pkcs10String);
+
+        Locale locale = Locale.getDefault();
+        CertEnrollmentRequest certRequest =
+                CertEnrollmentRequestFactory.create(argBlock, profile, locale);
+
+        EnrollmentProcessor processor = new EnrollmentProcessor("createSubCA", locale);
+        processor.setCMSEngine(engine);
+        processor.init();
+
+        Map<String, Object> resultMap = processor.processEnrollment(
+                certRequest, null, authorityID, null, authToken);
 
         com.netscape.cmscore.request.Request[] requests = (com.netscape.cmscore.request.Request[]) resultMap.get(CAProcessor.ARG_REQUESTS);
         com.netscape.cmscore.request.Request request = requests[0];

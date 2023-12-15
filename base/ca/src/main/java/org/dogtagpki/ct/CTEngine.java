@@ -605,7 +605,7 @@ public class CTEngine {
      *
      * enum SignatureAlgorithm { anonymous, rsa, dsa, ecdsa}
      */
-    enum SignatureAlgorithm {anonymous, RSA, DSA, EC};
+    enum SignatureAlgorithm {anonymous, RSA, DSA, EC, DILITHIUM};
     public String getSigAlgFromSig(byte[] ct_signature) {
 
         int signingAlg = Byte.toUnsignedInt(ct_signature[1]);

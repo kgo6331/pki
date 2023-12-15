@@ -483,6 +483,8 @@ class KeyClient(object):
     # Asymmetric Key Algorithms
     RSA_ALGORITHM = "RSA"
     DSA_ALGORITHM = "DSA"
+    DILITHIUM_ALGORITHM = "DILITHIUM"
+
 
     def __init__(self, connection, crypto, transport_cert_nick=None,
                  info_client=None):
@@ -766,8 +768,8 @@ class KeyClient(object):
             raise TypeError("Must specify Client Key ID")
 
         if str(algorithm).upper() not in \
-                [self.RSA_ALGORITHM, self.DSA_ALGORITHM]:
-            raise TypeError("Only RSA and DSA algorithms are supported.")
+                [self.RSA_ALGORITHM, self.DSA_ALGORITHM, self.DILITHIUM_ALGORITHM]:
+            raise TypeError("Only RSA, DSA, and DILITHIUM algorithms are supported.")
 
         # For generating keys using the RSA algorithm, the valid range of key
         # sizes is:
@@ -781,6 +783,9 @@ class KeyClient(object):
                 raise ValueError("Invalid key size specified.")
         if algorithm == self.DSA_ALGORITHM:
             if key_size not in [512, 768, 1024]:
+                raise ValueError("Invalid key size specified.")
+        if algorithm == self.DILITHIUM_ALGORITHM:
+            if key_size not in [1312*8, 1952*8, 2592*8]:
                 raise ValueError("Invalid key size specified.")
 
         if trans_wrapped_session_key is not None:

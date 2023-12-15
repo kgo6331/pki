@@ -2,8 +2,9 @@ package org.dogtagpki.dilithium.impl;
 
 import org.dogtagpki.dilithium.interfaces.DilithiumParameterSpec;
 import org.dogtagpki.dilithium.interfaces.DilithiumPublicKey;
+import org.mozilla.jss.netscape.security.x509.X509Key;
 
-public class DilithiumPublicKeyImpl implements DilithiumPublicKey {
+public class DilithiumPublicKeyImpl extends X509Key implements DilithiumPublicKey {
 	private static final long serialVersionUID = 1L;
 	private final byte[] rho;
 	private final PolyVec t1;

@@ -42,18 +42,12 @@ public class DilithiumParameterSpec implements AlgorithmParameterSpec {
 	
 	public static DilithiumParameterSpec getSpecForSecurityLevel(int level)
 	{
-		switch(level) {
-		case 2:
-			return LEVEL2;
-		case 3:
-			return LEVEL3;
-		case 5:
-			return LEVEL5;
-			
-		default:
-			throw new UnsupportedOperationException("Unsupported level: " + level);
-		
-		}
+        return switch (level) {
+            case 2 -> LEVEL2;
+            case 3 -> LEVEL3;
+            case 5 -> LEVEL5;
+            default -> throw new UnsupportedOperationException("Unsupported level: " + level);
+        };
 	}
 
 	@Override

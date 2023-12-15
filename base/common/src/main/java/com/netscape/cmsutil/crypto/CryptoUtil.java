@@ -61,6 +61,9 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
+import org.dogtagpki.dilithium.impl.DilithiumPublicKeyImpl;
+import org.dogtagpki.dilithium.interfaces.DilithiumParameterSpec;
+import org.dogtagpki.dilithium.interfaces.DilithiumPublicKey;
 import org.mozilla.jss.CryptoManager;
 import org.mozilla.jss.NicknameConflictException;
 import org.mozilla.jss.NoSuchTokenException;
@@ -979,6 +982,10 @@ public class CryptoUtil {
                     params.getQ(),
                     params.getG());
 
+        } else if (publicKey instanceof DilithiumPublicKey) {
+            DilithiumPublicKey dilithiumPublicKey = (DilithiumPublicKey) publicKey;
+            DilithiumParameterSpec param = dilithiumPublicKey.getSpec();
+            return new DilithiumPublicKeyImpl(param,dilithiumPublicKey.getRho(), dilithiumPublicKey.getT1(), dilithiumPublicKey.getEncoded(), dilithiumPublicKey.getT1().decompose(param.gamma2))
         } else {
             String message = "Unsupported public key: " + publicKey.getClass().getName();
             logger.error(message);

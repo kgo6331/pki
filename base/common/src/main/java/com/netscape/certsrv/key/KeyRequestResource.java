@@ -36,6 +36,7 @@ public interface KeyRequestResource {
     // Asymmetric Key algorithms
     public final static String RSA_ALGORITHM = "RSA";
     public final static String DSA_ALGORITHM = "DSA";
+    public final static String DILITHIUM_ALGORITHM = "DILITHIUM";
     public final static String EC_ALGORITHM = "EC"; // Not supported yet.
 
     /**
